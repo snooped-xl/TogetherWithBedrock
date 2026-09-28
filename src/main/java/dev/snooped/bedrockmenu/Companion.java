@@ -20,7 +20,10 @@ public final class Companion implements AutoCloseable {
     private BufferedWriter input;
     private volatile boolean closed;
     private volatile Path profile;
-    public Companion(){try{profile=CompanionBundle.profile();}catch(Exception ignored){}}
+    private final Path descriptorOverride;
+    public Companion(){this(null,null);}
+    /** Test seam: launch from an explicit descriptor instead of the embedded bundle. */
+    Companion(Path descriptorOverride,Path profileOverride){this.descriptorOverride=descriptorOverride;this.profile=profileOverride;}
     public Path profile(){return profile;}
     public CompletableFuture<JsonObject> request(String method){return request(method,new JsonObject());}
     public CompletableFuture<JsonObject> request(String method,JsonObject params) {
@@ -41,8 +44,8 @@ public final class Companion implements AutoCloseable {
         if(process!=null&&process.isAlive())return;
         // Materialize the embedded service build and its launch descriptor inside
         // the game instance. Everything runs with the Java runtime the game uses.
-        Path descriptor=CompanionBundle.install();
-        profile=CompanionBundle.profile();
+        Path descriptor=descriptorOverride!=null?descriptorOverride:CompanionBundle.install();
+        if(descriptorOverride==null)profile=CompanionBundle.profile();
         try {
             if(Files.getFileStore(profile).supportsFileAttributeView(PosixFileAttributeView.class))
                 Files.setPosixFilePermissions(profile,PosixFilePermissions.fromString("rwx------"));

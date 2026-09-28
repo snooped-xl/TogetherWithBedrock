@@ -1,6 +1,6 @@
 plugins { id 'net.fabricmc.fabric-loom' version '1.16.3' }
 group = 'dev.snooped'
-version = '0.4.0+26.2'
+version = '0.4.1+26.2'
 base { archivesName = 'together-with-bedrock' }
 dependencies {
     minecraft 'com.mojang:minecraft:26.2'
