@@ -1,0 +1,1 @@
+{"schemaVersion":1,"id":"bedrock_menu_smoke","version":"1","environment":"client","entrypoints":{"client":["dev.snooped.bedrockmenu.UiSmoke"]},"depends":{"bedrock_menu":"*"}}

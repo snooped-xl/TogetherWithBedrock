@@ -1,0 +1,70 @@
+plugins { id 'net.fabricmc.fabric-loom' version '1.16.3' }
+group = 'dev.snooped'
+version = '0.4.0+26.2'
+base { archivesName = 'together-with-bedrock' }
+dependencies {
+    minecraft 'com.mojang:minecraft:26.2'
+    implementation 'net.fabricmc:fabric-loader:0.19.3'
+    implementation 'net.fabricmc.fabric-api:fabric-api:0.158.0+26.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+tasks.withType(JavaCompile).configureEach { options.release = 25 }
+java { sourceCompatibility = JavaVersion.VERSION_25; targetCompatibility = JavaVersion.VERSION_25; withSourcesJar() }
+processResources { inputs.property 'version', project.version; filesMatching('fabric.mod.json') { expand version: project.version } }
+test { useJUnitPlatform() }
+jar { from('LICENSE') { rename { 'LICENSE_bedrock_menu' } } }
+
+// Isolated UI smoke harness; excluded from the installed mod and its source JAR.
+sourceSets {
+    serverSkinBridge {
+        compileClasspath += sourceSets.main.compileClasspath
+        runtimeClasspath += sourceSets.main.compileClasspath
+    }
+    smoke {
+        compileClasspath += sourceSets.main.compileClasspath + sourceSets.main.output
+        runtimeClasspath += sourceSets.main.runtimeClasspath + sourceSets.main.output
+    }
+}
+tasks.named('processServerSkinBridgeResources') {
+    inputs.property 'version', project.version
+    filesMatching('fabric.mod.json') { expand version: project.version }
+}
+tasks.register('serverSkinBridgeJar', Jar) {
+    dependsOn tasks.named('serverSkinBridgeClasses')
+    archiveFileName = 'together-with-bedrock-host-skins.jar'
+    from sourceSets.serverSkinBridge.output
+    from('LICENSE') { rename { 'LICENSE_together_with_bedrock_host_skins' } }
+}
+sourceSets.test.compileClasspath += sourceSets.serverSkinBridge.output
+sourceSets.test.runtimeClasspath += sourceSets.serverSkinBridge.output
+tasks.named('test') { dependsOn tasks.named('serverSkinBridgeClasses') }
+// Optional local compatibility fixture dependencies; never bundled or required by the mod.
+if (project.hasProperty('itemPhysicSmoke') && project.hasProperty('itemPhysicJar')) {
+    dependencies {
+        smokeRuntimeOnly files(project.property('itemPhysicJar'), project.property('creativeCoreJar'))
+    }
+}
+if (project.hasProperty('leawindJar')) {
+    dependencies { smokeRuntimeOnly files(project.property('leawindJar'), project.property('perspectiveJar')) }
+}
+loom {
+    mods {
+        bedrock_menu { sourceSet sourceSets.main }
+        bedrock_menu_smoke { sourceSet sourceSets.smoke }
+    }
+    runs {
+        smoke {
+            client()
+            source sourceSets.smoke
+            runDir project.hasProperty('itemPhysicSmoke') ? 'run-itemphysic-smoke' : project.hasProperty('hostingSmoke') ? 'run-hosting-smoke' : 'run-smoke'
+            vmArg '-Xmx2G'
+            if (project.hasProperty('hostingSmoke')) vmArg '-Dtwb.smoke.hosting=true'
+            if (project.hasProperty('itemPhysicSmoke')) {
+                vmArg '-Dtwb.smoke.itemphysic=true'
+                vmArg '-Dmixin.debug.export=true'
+            }
+            programArgs '--username', 'BedrockUiTest', '--width', '1068', '--height', '650'
+        }
+    }
+}

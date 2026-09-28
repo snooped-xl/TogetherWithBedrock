@@ -1,0 +1,33 @@
+{
+  "required": true,
+  "package": "dev.snooped.bedrockmenu.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "client": [
+    "ReconnectMixin",
+    "MovementTelemetryMixin",
+    "BedrockMovementPhysicsMixin",
+    "BedrockWaterContactMixin",
+    "BedrockSwimmingMixin",
+    "BedrockDirectionalInputMixin",
+    "CreativeInventoryMixin",
+    "CreativePacketMixin",
+    "CreativeInventorySyncMixin",
+    "ResourcePackConsentMixin",
+    "ItemPhysicDropMixin",
+    "ItemPhysicTickMixin",
+    "MovementReplayMixin",
+    "MovementReplayCollisionMixin",
+    "MovementReplayDragMixin",
+    "MovementReplayTeleportMixin",
+    "EntityCollisionAccess",
+    "BedrockSwimStateMixin",
+    "CameraPositionAccess",
+    "MovementVisualRenderMixin",
+    "MovementVisualPlayerMixin",
+    "BedrockPlayerInfoSkinMixin",
+    "BedrockPlayerSkinMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

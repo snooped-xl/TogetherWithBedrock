@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "bedrock_menu",
+  "version": "${version}",
+  "name": "TogetherWithBedrock",
+  "description": "Bedrock servers, Realms, Xbox friends, invitations and hosted Java/Bedrock worlds, with an independently updateable proxy.",
+  "authors": [
+    "Snooped",
+    "Codex"
+  ],
+  "license": "GPL-3.0-or-later",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "dev.snooped.bedrockmenu.BedrockMenu"
+    ]
+  },
+  "mixins": [
+    "bedrock-menu.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.19.3",
+    "minecraft": "26.2",
+    "java": ">=25",
+    "fabric-api": ">=0.158.0"
+  },
+  "icon": "assets/bedrock_menu/icon.png"
+}
