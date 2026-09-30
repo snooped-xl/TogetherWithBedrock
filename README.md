@@ -56,6 +56,7 @@ One mod jar. No external application, no bundled Java runtime, no manual proxy s
   - Optional **performance mod bundle** applied automatically
 - **Broadcasting** — optional companion bot announces your hosted world to Xbox feeds so friends see it (MCXboxBroadcast, embedded)
 - **Hosting screens** — Overview / Content / Sharing tabs with live status, logs and player feed
+- **Delete hosted worlds** from Manage, with a named confirmation; running worlds and worlds with pending content changes cannot be deleted
 
 ### Crossplay experience fixes
 - **Bedrock skins rendered on Java** — skins of Bedrock players are fetched, converted and applied in-game (including cape variants and skin persistence across sessions)
@@ -124,7 +125,7 @@ The companion service sources (MenuService, hosting backend, ViaBedrock protocol
 | What | Where |
 |---|---|
 | Companion runtime & hosting data | `<instance>/bedrock-companion/` |
-| Hosted worlds & tunnel config | `<instance>/bedrock-companion/hosting/` |
+| Hosted worlds & tunnel config | `<instance>/bedrock-companion/profile-v2/hosting/` |
 | Saved Bedrock servers, sessions, invites | `<instance>/bedrock-companion/profile-v2/` |
 | Mod preferences | `<instance>/config/bedrock-*.json` |
 | Service & gameplay logs | `<instance>/bedrock-companion/profile-v2/companion.log`, `gameplay.log` |

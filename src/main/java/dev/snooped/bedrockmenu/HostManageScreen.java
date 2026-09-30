@@ -7,7 +7,7 @@ import net.minecraft.network.chat.Component;
 import static dev.snooped.bedrockmenu.BedrockMenu.*;
 
 final class HostManageScreen extends MenuScreen {
-    final JsonObject world;private JsonObject state=new JsonObject();private long nextPoll;private boolean operation;private String result="";private int tab;
+    final JsonObject world;private JsonObject state=new JsonObject();private long nextPoll;private boolean operation,statusKnown;private String result="";private int tab;
     HostManageScreen(Screen parent,JsonObject world){super(parent,text(world,"name"));this.world=world;}
     private String id(){return text(world,"id");}
     @Override protected void init(){layout();poll();}
@@ -15,7 +15,7 @@ final class HostManageScreen extends MenuScreen {
     private boolean running(){return thisWorld()&&bool(state,"running");}
     private boolean activeWorld(){return thisWorld()&&(!text(state,"state").equals("stopped")&&!text(state,"state").equals("error"));}
     private boolean broadcastEnabled(){return !world.has("broadcastEnabled")||bool(world,"broadcastEnabled");}
-    private void applyState(JsonObject value){state=value;for(JsonElement e:array(value,"worlds")){JsonObject saved=e.getAsJsonObject();if(id().equals(text(saved,"id"))){world.addProperty("visibility",text(saved,"visibility"));if(saved.has("broadcastEnabled"))world.addProperty("broadcastEnabled",bool(saved,"broadcastEnabled"));}}}
+    private void applyState(JsonObject value){state=value;statusKnown=true;for(JsonElement e:array(value,"worlds")){JsonObject saved=e.getAsJsonObject();if(id().equals(text(saved,"id"))){world.addProperty("visibility",text(saved,"visibility"));if(saved.has("broadcastEnabled"))world.addProperty("broadcastEnabled",bool(saved,"broadcastEnabled"));}}}
     private int actionsY(){return Math.min(height-57,254);}
     private void layout(){
         clearWidgets();dimensions();int w=(contentWidth-8)/3,half=(contentWidth-20)/2,x=left+8,y=actionsY();
@@ -42,6 +42,28 @@ final class HostManageScreen extends MenuScreen {
             button("Test Bedrock connection",left,y,contentWidth,()->{result="Checking Geyser…";request("hosting.geyserTest",object("id",id()),data->{result=first(data,"message","status","error");if(result.isBlank())result=bool(data,"ok")?"Geyser responded successfully.":"Geyser did not respond.";layout();});}).active=ready&&!loading;
         }
         button("Back",left,height-26,70,this::onClose);
+        var delete=button("Delete world",left+contentWidth-84,height-26,84,this::confirmDelete);
+        delete.active=statusKnown&&!loading&&!operation&&!active&&!running();
+        delete.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal(active||running()?"Stop this world before deleting it.":"Permanently delete this hosted world, its server mods and settings.")));
+    }
+    private void confirmDelete(){
+        if(!statusKnown||loading||operation||activeWorld()||running())return;
+        String name=text(world,"name");
+        ConfirmScreen confirmation=new ConfirmScreen(yes->{
+            // Suppress the status poll triggered by reopening this screen so it
+            // cannot supersede the destructive request's completion callback.
+            if(yes)operation=true;
+            minecraft.gui.setScreen(this);
+            if(!yes)return;
+            JsonObject params=object("id",id(),"name",name);params.addProperty("confirmed",true);
+            message="Deleting world…";
+            request("hosting.delete",params,data->{
+                operation=false;
+                HostingScreen list=new HostingScreen(parent instanceof HostingScreen hosting?hosting.parent:parent);
+                minecraft.gui.setScreen(list);
+            });layout();
+        },Component.literal("Delete "+name+"?"),Component.literal("This permanently deletes this hosted world's save, player progress, server mods and settings. This cannot be undone. Other hosted worlds are kept."),Component.literal("Delete world"),Component.literal("Cancel"));
+        minecraft.gui.setScreen(confirmation);confirmation.setDelay(20);
     }
     private void stop(){minecraft.gui.setScreen(new ConfirmScreen(yes->{minecraft.gui.setScreen(this);if(yes)command("hosting.stop",object("id",id()));},Component.literal("Stop hosted world?"),Component.literal("Players will disconnect. The server saves the world before stopping.")));}
     private void command(String method,JsonObject params){if(operation)return;operation=true;request(method,params,data->{operation=false;applyState(data);layout();nextPoll=0;});layout();}
